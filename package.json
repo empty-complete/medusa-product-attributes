@@ -33,8 +33,7 @@
     "prepublishOnly": "npm run clean && npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "prepare": "husky"
+    "test:coverage": "jest --coverage"
   },
   "peerDependencies": {
     "@medusajs/framework": "^2.0.0"
