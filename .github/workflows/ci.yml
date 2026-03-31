@@ -8,6 +8,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -83,7 +87,7 @@ jobs:
       - name: Check if version exists and set snapshot if needed
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          if pnpm view @empty-complete/medusa-product-attributes@$VERSION &>/dev/null; then
+          if npm view @empty-complete/medusa-product-attributes@$VERSION --registry https://npm.pkg.github.com &>/dev/null; then
             SNAPSHOT_VERSION="${VERSION}-$(echo $GITHUB_SHA | cut -c1-7)"
             echo "Version $VERSION exists, using snapshot: $SNAPSHOT_VERSION"
             node -p "JSON.stringify({...require('./package.json'), version: '$SNAPSHOT_VERSION'}, null, 2)" > package.json
@@ -97,7 +101,7 @@ jobs:
       - name: Publish to GitHub Packages
         run: pnpm publish --access public --no-git-checks
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
 
   publish-npm:
     runs-on: ubuntu-latest
