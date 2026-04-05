@@ -8,10 +8,13 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useState } from "react"
 import { sdk } from "../lib/sdk"
 
+type AttributeType = "text" | "number" | "file" | "boolean"
+
 type CategoryCustomAttribute = {
   id: string
   label: string
-  type: "text" | "number" | "file" | "boolean"
+  type: AttributeType
+  unit: string | null
   category_id: string
   inherited: boolean
   source_category_id: string
@@ -19,10 +22,11 @@ type CategoryCustomAttribute = {
 
 type FormState = {
   label: string
-  type: "text" | "number"
+  type: AttributeType
+  unit: string
 }
 
-const emptyForm = (): FormState => ({ label: "", type: "text" })
+const emptyForm = (): FormState => ({ label: "", type: "text", unit: "" })
 
 const CategoryAttributeTemplatesWidget = ({
   data,
@@ -53,7 +57,7 @@ const CategoryAttributeTemplatesWidget = ({
   const inheritedAttributes = attributes.filter((a) => a.inherited)
 
   const createMutation = useMutation({
-    mutationFn: (body: { label: string; type: string }) =>
+    mutationFn: (body: { label: string; type: string; unit?: string | null }) =>
       sdk.client.fetch(`/admin/category/${categoryId}/custom-attributes`, {
         method: "POST",
         body,
@@ -86,11 +90,18 @@ const CategoryAttributeTemplatesWidget = ({
     createMutation.mutate({
       label: addForm.label.trim(),
       type: addForm.type,
+      unit: addForm.type === "number" && addForm.unit.trim()
+        ? addForm.unit.trim()
+        : null,
     })
   }
 
   const typeLabel = (t: string) =>
-    t === "text" ? "Текст" : t === "number" ? "Число" : t
+    t === "text" ? "Текст"
+    : t === "number" ? "Число"
+    : t === "file" ? "Файл"
+    : t === "boolean" ? "Да/Нет"
+    : t
 
   return (
     <Container className="divide-y p-0">
@@ -138,7 +149,7 @@ const CategoryAttributeTemplatesWidget = ({
                   {attr.label}
                 </span>
                 <Badge size="2xsmall" color="grey">
-                  {typeLabel(attr.type)}
+                  {typeLabel(attr.type)}{attr.unit ? `, ${attr.unit}` : ""}
                 </Badge>
                 <Badge size="2xsmall" color="blue">
                   из родителя
@@ -232,14 +243,27 @@ const CategoryAttributeTemplatesWidget = ({
             onChange={(e) =>
               setAddForm((f) => ({
                 ...f,
-                type: e.target.value as "text" | "number",
+                type: e.target.value as AttributeType,
+                unit: e.target.value === "number" ? f.unit : "",
               }))
             }
             className="h-8 rounded border border-ui-border-base bg-ui-bg-base px-2 text-sm"
           >
             <option value="text">Текст</option>
             <option value="number">Число</option>
+            <option value="file">Файл</option>
+            <option value="boolean">Да/Нет</option>
           </select>
+          {addForm.type === "number" && (
+            <Input
+              value={addForm.unit}
+              onChange={(e) =>
+                setAddForm((f) => ({ ...f, unit: e.target.value }))
+              }
+              placeholder="ед. (кг, м, шт...)"
+              className="w-28 h-8 text-sm"
+            />
+          )}
           <Button
             size="small"
             onClick={handleAdd}

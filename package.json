@@ -1,6 +1,6 @@
 {
   "name": "@empty-complete-org/medusa-product-attributes",
-  "version": "0.11.1",
+  "version": "0.12.0",
   "description": "Custom attributes module for Medusa v2 with support for text, number, file types and units of measurement",
   "author": "empty-complete",
   "license": "MIT",
@@ -63,6 +63,8 @@
     "@medusajs/js-sdk": "^2.13.1",
     "@medusajs/medusa": "^2.13.1",
     "@medusajs/ui": "^4.0.27",
+    "@mikro-orm/core": "6.4.16",
+    "@mikro-orm/migrations": "6.4.16",
     "@tanstack/react-query": "^5.64.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
@@ -71,6 +73,7 @@
     "jest": "^30.3.0",
     "react": "^19.0.0",
     "ts-jest": "^29.4.6",
+    "ts-node": "^10.9.2",
     "typescript": "^5.0.0",
     "yalc": "^1.0.0-pre.53"
   },
