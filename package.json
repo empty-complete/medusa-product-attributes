@@ -1,6 +1,6 @@
 {
   "name": "@empty-complete-org/medusa-product-attributes",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Custom attributes module for Medusa v2 with support for text, number, file types and units of measurement",
   "author": "empty-complete",
   "license": "MIT",
@@ -10,34 +10,35 @@
   },
   "keywords": [
     "medusa",
-    "medusajs-v2",
-    "medusa-module",
+    "medusa-v2",
+    "medusa-plugin",
+    "medusa-plugin-integration",
     "custom-attributes",
     "product-attributes",
     "ecommerce",
-    "typescript",
-    "product"
+    "typescript"
   ],
   "files": [
-    "dist",
-    "src/admin",
-    "src/api"
+    ".medusa/server",
+    "!.medusa/server/**/__tests__"
   ],
+  "main": ".medusa/server/src/index.js",
   "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
+    "./package.json": "./package.json",
+    "./workflows": "./.medusa/server/src/workflows/index.js",
+    "./.medusa/server/src/modules/*": "./.medusa/server/src/modules/*/index.js",
+    "./providers/*": "./.medusa/server/src/providers/*/index.js",
+    "./admin": {
+      "import": "./.medusa/server/src/admin/index.mjs",
+      "require": "./.medusa/server/src/admin/index.js",
+      "default": "./.medusa/server/src/admin/index.js"
     },
-    "./models/*": "./dist/models/*.js",
-    "./service": "./dist/service.js",
-    "./admin/*": "./src/admin/*.tsx",
-    "./api/*": "./src/api/*",
-    "./package.json": "./package.json"
+    "./*": "./.medusa/server/src/*.js"
   },
   "scripts": {
-    "build": "tsc",
-    "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build",
+    "build": "medusa plugin:build",
+    "dev": "medusa plugin:develop",
+    "prepublishOnly": "medusa plugin:build",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
@@ -45,22 +46,33 @@
     "prepare": "husky"
   },
   "peerDependencies": {
-    "@medusajs/framework": "^2.0.0",
-    "@medusajs/admin-sdk": "^2.0.0",
+    "@medusajs/admin-sdk": "^2.13.0",
+    "@medusajs/cli": "^2.13.0",
+    "@medusajs/framework": "^2.13.0",
+    "@medusajs/js-sdk": "^2.13.0",
+    "@medusajs/medusa": "^2.13.0",
     "@medusajs/ui": "^4.0.0",
-    "@medusajs/js-sdk": "^2.0.0",
     "@tanstack/react-query": "^5.0.0",
     "react": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.0",
+    "@medusajs/admin-sdk": "^2.13.1",
+    "@medusajs/cli": "^2.13.1",
     "@medusajs/framework": "^2.13.1",
+    "@medusajs/js-sdk": "^2.13.1",
+    "@medusajs/medusa": "^2.13.1",
+    "@medusajs/ui": "^4.0.27",
+    "@tanstack/react-query": "^5.64.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^20.0.0",
+    "@types/react": "^19.0.0",
     "husky": "^9.1.7",
     "jest": "^30.3.0",
+    "react": "^19.0.0",
     "ts-jest": "^29.4.6",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "yalc": "^1.0.0-pre.53"
   },
   "engines": {
     "node": ">=20"

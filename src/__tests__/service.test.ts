@@ -52,6 +52,39 @@ describe('CustomAttributeService', () => {
     })
   })
 
+  describe('getAttributesByCategoryIds', () => {
+    it('should query attributes for all provided category ids and mark inheritance', async () => {
+      // categoryIds are provided in order [leaf, parent, grandparent]
+      const categoryIds = ['leaf-cat', 'parent-cat', 'root-cat']
+
+      const mockAttributes = [
+        { id: 'a1', key: 'color', label: 'Color', type: 'text', category_id: 'leaf-cat', sort_order: 0 },
+        { id: 'a2', key: 'weight', label: 'Weight', type: 'number', category_id: 'parent-cat', sort_order: 0 },
+        { id: 'a3', key: 'brand', label: 'Brand', type: 'text', category_id: 'root-cat', sort_order: 0 },
+      ]
+      service.listCategoryCustomAttributes = jest.fn().mockResolvedValue(mockAttributes)
+
+      const result = await service.getAttributesByCategoryIds(categoryIds)
+
+      expect(service.listCategoryCustomAttributes).toHaveBeenCalledWith({
+        category_id: categoryIds,
+        deleted_at: null,
+      })
+      expect(result).toHaveLength(3)
+      // First id in the list is the leaf category — its attributes are not inherited
+      expect(result.find((a: any) => a.id === 'a1')).toMatchObject({ inherited: false, source_category_id: 'leaf-cat' })
+      expect(result.find((a: any) => a.id === 'a2')).toMatchObject({ inherited: true, source_category_id: 'parent-cat' })
+      expect(result.find((a: any) => a.id === 'a3')).toMatchObject({ inherited: true, source_category_id: 'root-cat' })
+    })
+
+    it('should return empty array when no category ids provided', async () => {
+      service.listCategoryCustomAttributes = jest.fn()
+      const result = await service.getAttributesByCategoryIds([])
+      expect(result).toEqual([])
+      expect(service.listCategoryCustomAttributes).not.toHaveBeenCalled()
+    })
+  })
+
   describe('createCategoryAttribute', () => {
     it('should create category attribute with generated key and defaults', async () => {
       const inputData = {

@@ -13,6 +13,8 @@ type CategoryCustomAttribute = {
   label: string
   type: "text" | "number" | "file" | "boolean"
   category_id: string
+  inherited: boolean
+  source_category_id: string
 }
 
 type FormState = {
@@ -47,6 +49,8 @@ const CategoryAttributeTemplatesWidget = ({
   })
 
   const attributes = result?.category_custom_attributes ?? []
+  const ownAttributes = attributes.filter((a) => !a.inherited)
+  const inheritedAttributes = attributes.filter((a) => a.inherited)
 
   const createMutation = useMutation({
     mutationFn: (body: { label: string; type: string }) =>
@@ -85,6 +89,9 @@ const CategoryAttributeTemplatesWidget = ({
     })
   }
 
+  const typeLabel = (t: string) =>
+    t === "text" ? "Текст" : t === "number" ? "Число" : t
+
   return (
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
@@ -114,65 +121,98 @@ const CategoryAttributeTemplatesWidget = ({
         </div>
       )}
 
+      {inheritedAttributes.length > 0 && (
+        <>
+          <div className="px-6 py-2 bg-ui-bg-subtle">
+            <Text size="xsmall" weight="plus" className="text-ui-fg-muted uppercase">
+              Унаследованные
+            </Text>
+          </div>
+          <div className="divide-y">
+            {inheritedAttributes.map((attr) => (
+              <div
+                key={attr.id}
+                className="flex items-center gap-3 px-6 py-3"
+              >
+                <span className="flex-1 text-sm text-ui-fg-subtle">
+                  {attr.label}
+                </span>
+                <Badge size="2xsmall" color="grey">
+                  {typeLabel(attr.type)}
+                </Badge>
+                <Badge size="2xsmall" color="blue">
+                  из родителя
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {ownAttributes.length > 0 && (
+        <>
+          {inheritedAttributes.length > 0 && (
+            <div className="px-6 py-2 bg-ui-bg-subtle">
+              <Text size="xsmall" weight="plus" className="text-ui-fg-muted uppercase">
+                Свои
+              </Text>
+            </div>
+          )}
+          <div className="divide-y">
+            {ownAttributes.map((attr) =>
+              confirmDeleteId === attr.id ? (
+                <div
+                  key={attr.id}
+                  className="flex items-center gap-3 px-6 py-3 text-sm"
+                >
+                  <span className="flex-1 text-ui-fg-base">
+                    Удалить «{attr.label}»?
+                  </span>
+                  <Button
+                    size="small"
+                    variant="danger"
+                    onClick={() => deleteMutation.mutate(attr.id)}
+                    isLoading={deleteMutation.isPending}
+                  >
+                    Удалить
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="secondary"
+                    onClick={() => setConfirmDeleteId(null)}
+                  >
+                    Отмена
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  key={attr.id}
+                  className="flex items-center gap-3 px-6 py-3"
+                >
+                  <span className="flex-1 text-sm text-ui-fg-base">
+                    {attr.label}
+                  </span>
+                  <Badge size="2xsmall" color="grey">
+                    {typeLabel(attr.type)}
+                  </Badge>
+                  <button
+                    onClick={() => setConfirmDeleteId(attr.id)}
+                    className="text-xs text-ui-fg-error hover:underline"
+                  >
+                    Удалить
+                  </button>
+                </div>
+              )
+            )}
+          </div>
+        </>
+      )}
+
       {!isLoading && !isError && attributes.length === 0 && !showAddForm && (
         <div className="px-6 py-4">
           <Text className="text-ui-fg-muted text-sm">
             Нет атрибутов. Добавьте первый.
           </Text>
-        </div>
-      )}
-
-      {attributes.length > 0 && (
-        <div className="divide-y">
-          {attributes.map((attr) =>
-            confirmDeleteId === attr.id ? (
-              <div
-                key={attr.id}
-                className="flex items-center gap-3 px-6 py-3 text-sm"
-              >
-                <span className="flex-1 text-ui-fg-base">
-                  Удалить «{attr.label}»?
-                </span>
-                <Button
-                  size="small"
-                  variant="danger"
-                  onClick={() => deleteMutation.mutate(attr.id)}
-                  isLoading={deleteMutation.isPending}
-                >
-                  Удалить
-                </Button>
-                <Button
-                  size="small"
-                  variant="secondary"
-                  onClick={() => setConfirmDeleteId(null)}
-                >
-                  Отмена
-                </Button>
-              </div>
-            ) : (
-              <div
-                key={attr.id}
-                className="flex items-center gap-3 px-6 py-3"
-              >
-                <span className="flex-1 text-sm text-ui-fg-base">
-                  {attr.label}
-                </span>
-                <Badge size="2xsmall" color="grey">
-                  {attr.type === "text"
-                    ? "Текст"
-                    : attr.type === "number"
-                      ? "Число"
-                      : attr.type}
-                </Badge>
-                <button
-                  onClick={() => setConfirmDeleteId(attr.id)}
-                  className="text-xs text-ui-fg-error hover:underline"
-                >
-                  Удалить
-                </button>
-              </div>
-            )
-          )}
         </div>
       )}
 
