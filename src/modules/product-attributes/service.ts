@@ -2,10 +2,12 @@ import { MedusaService } from "@medusajs/framework/utils"
 import { slugify } from "transliteration"
 import CategoryCustomAttribute from "./models/category-custom-attribute"
 import ProductCustomAttribute from "./models/product-custom-attribute"
+import AttributePreset from "./models/attribute-preset"
 
 const models = {
   CategoryCustomAttribute,
   ProductCustomAttribute,
+  AttributePreset,
 }
 
 type Models = typeof models
@@ -107,6 +109,58 @@ class CustomAttributeService extends MedusaService(models) {
       deleted_at: null,
     }, {
       relations: ["category_custom_attribute"],
+    })
+  }
+
+  async listPresets() {
+    // @ts-ignore - generated
+    return await this.listAttributePresets({ deleted_at: null })
+  }
+
+  async createPreset(data: {
+    label: string
+    type?: string
+    unit?: string | null
+    description?: string | null
+  }) {
+    const key = this.generateKey(data.label)
+    // @ts-ignore - generated
+    return await this.createAttributePresets({
+      label: data.label,
+      key,
+      type: data.type || "text",
+      unit: data.unit ?? null,
+      description: data.description ?? null,
+    })
+  }
+
+  async updatePreset(
+    id: string,
+    data: {
+      label?: string
+      type?: string
+      unit?: string | null
+      description?: string | null
+      deleted_at?: string
+    }
+  ) {
+    const updateData: Record<string, any> = { ...data }
+    if (data.label) {
+      updateData.key = this.generateKey(data.label)
+    }
+    // @ts-ignore - generated
+    return await this.updateAttributePresets([{ id, ...updateData }])
+  }
+
+  async applyPresetToCategory(presetId: string, categoryId: string) {
+    // @ts-ignore - generated
+    const preset = await this.retrieveAttributePreset(presetId)
+    return await this.createCategoryAttribute({
+      label: preset.label,
+      type: preset.type,
+      unit: preset.unit,
+      category_id: categoryId,
+      is_standard: true,
     })
   }
 

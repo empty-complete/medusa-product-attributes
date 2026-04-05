@@ -1,6 +1,6 @@
 {
   "name": "@empty-complete-org/medusa-product-attributes",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "description": "Custom attributes module for Medusa v2 with support for text, number, file types and units of measurement",
   "author": "empty-complete",
   "license": "MIT",

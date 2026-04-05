@@ -36,9 +36,38 @@ const CategoryAttributeTemplatesWidget = ({
   const queryKey = ["category-custom-attributes", categoryId]
 
   const [showAddForm, setShowAddForm] = useState(false)
+  const [showPresetList, setShowPresetList] = useState(false)
   const [addForm, setAddForm] = useState<FormState>(emptyForm())
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
   const [mutationError, setMutationError] = useState<string | null>(null)
+
+  const presetsQuery = useQuery<{
+    attribute_presets: Array<{
+      id: string
+      label: string
+      type: AttributeType
+      unit: string | null
+    }>
+  }>({
+    queryKey: ["attribute-presets"],
+    queryFn: () => sdk.client.fetch(`/admin/attribute-presets`),
+    enabled: showPresetList,
+  })
+
+  const applyPresetMutation = useMutation({
+    mutationFn: (presetId: string) =>
+      sdk.client.fetch(`/admin/attribute-presets/${presetId}/apply`, {
+        method: "POST",
+        body: { category_id: categoryId },
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey })
+      setShowPresetList(false)
+    },
+    onError: (err: any) => {
+      setMutationError(err?.message || "Ошибка при применении пресета")
+    },
+  })
 
   const {
     data: result,
@@ -107,16 +136,63 @@ const CategoryAttributeTemplatesWidget = ({
     <Container className="divide-y p-0">
       <div className="flex items-center justify-between px-6 py-4">
         <Heading level="h2">Атрибуты</Heading>
-        {!showAddForm && (
-          <Button
-            variant="secondary"
-            size="small"
-            onClick={() => setShowAddForm(true)}
-          >
-            + Добавить
-          </Button>
+        {!showAddForm && !showPresetList && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={() => setShowPresetList(true)}
+            >
+              Из пресета
+            </Button>
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={() => setShowAddForm(true)}
+            >
+              + Добавить
+            </Button>
+          </div>
         )}
       </div>
+
+      {showPresetList && (
+        <div className="px-6 py-3">
+          <div className="mb-2 flex items-center justify-between">
+            <Text size="small" weight="plus">Выберите пресет</Text>
+            <Button
+              size="small"
+              variant="secondary"
+              onClick={() => setShowPresetList(false)}
+            >
+              Закрыть
+            </Button>
+          </div>
+          {presetsQuery.isLoading && (
+            <Text className="text-ui-fg-muted text-sm">Загрузка…</Text>
+          )}
+          {presetsQuery.data?.attribute_presets.length === 0 && (
+            <Text className="text-ui-fg-muted text-sm">
+              Пресетов нет. Создайте в настройках Product Attributes.
+            </Text>
+          )}
+          <div className="flex flex-col gap-1">
+            {presetsQuery.data?.attribute_presets.map((p) => (
+              <button
+                key={p.id}
+                onClick={() => applyPresetMutation.mutate(p.id)}
+                disabled={applyPresetMutation.isPending}
+                className="flex items-center justify-between rounded border border-ui-border-base px-3 py-2 text-left text-sm hover:bg-ui-bg-subtle disabled:opacity-50"
+              >
+                <span>{p.label}</span>
+                <Badge size="2xsmall" color="grey">
+                  {typeLabel(p.type)}{p.unit ? `, ${p.unit}` : ""}
+                </Badge>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <div className="px-6 py-4">
