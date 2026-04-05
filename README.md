@@ -24,7 +24,6 @@
     <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-%3E=20-339933" alt="Node.js"></a>
   </p>
 
-  <p><a href="./README.ru.md">Русская версия</a></p>
 </div>
 
 ---
